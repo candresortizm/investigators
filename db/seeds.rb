@@ -5,3 +5,4 @@
 #
 #   movies = Movie.create([{ name: 'Star Wars' }, { name: 'Lord of the Rings' }])
 #   Character.create(name: 'Luke', movie: movies.first)
+Announcement.new(name: "Convocatoria 833 de 2018",id_announcement: "20",date_announcement: "2019-12-06").save

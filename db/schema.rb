@@ -70,26 +70,26 @@ ActiveRecord::Schema.define(version: 2020_03_28_172713) do
   create_table "knowledge_areas", force: :cascade do |t|
     t.bigint "big_area_id", null: false
     t.string "name", null: false
+    t.string "id_area", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.index ["big_area_id"], name: "index_knowledge_areas_on_big_area_id"
+    t.index ["id_area"], name: "index_knowledge_areas_on_id_area"
   end
 
   create_table "knowledge_specialities", force: :cascade do |t|
     t.bigint "knowledge_area_id", null: false
     t.string "name", null: false
-    t.string "id_area", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.index ["id_area"], name: "index_knowledge_specialities_on_id_area"
     t.index ["knowledge_area_id"], name: "index_knowledge_specialities_on_knowledge_area_id"
   end
 
   create_table "municipalities", force: :cascade do |t|
     t.bigint "depto_id", null: false
     t.string "name", null: false
-    t.string "dane_code", null: false
-    t.string "ubic_res", null: false
+    t.string "dane_code"
+    t.string "ubic_res"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.index ["depto_id"], name: "index_municipalities_on_depto_id"
