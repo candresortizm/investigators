@@ -43,7 +43,7 @@ class InformationImporter
     KnowledgeSpeciality.import @knowledge_specialities, on_duplicate_key_ignore: true
     FormationLevel.import @formation_levels, on_duplicate_key_ignore: true
     RecognitionLevel.import @recognition_levels, on_duplicate_key_ignore: true
-    Investigator.import @investigators, on_duplicate_key_ignore: true
+    Investigator.import @investigators, recursive: true, on_duplicate_key_ignore: true
   end
 
   def build_investigator(row_info)
@@ -66,7 +66,6 @@ class InformationImporter
               row_info["NME_GRAN_AREA_PR"]
             )
 
-    # announcement = Announcement.find_by(id_announcement: "20")
     birthplace = build_location(
               row_info["NME_MUNICIPIO_NAC_PR"],
               row_info["NME_DEPARTAMENTO_NAC_PR"],
@@ -102,7 +101,7 @@ class InformationImporter
   def build_area(id_area, speciality_name, area_name, big_area_name)
     big_area = build_big_area(big_area_name)
     knowledge_area = build_knowledge_area(big_area,area_name,id_area)
-    speciality_area = build_speciality_area(knowledge_area,speciality_name)
+    build_speciality_area(knowledge_area,speciality_name)
   end
 
 
@@ -134,7 +133,8 @@ class InformationImporter
       knowledge_area = KnowledgeArea.where(name: knowledge_area_name).
              first_or_initialize(
               name: knowledge_area_name,
-              id_area: id_area
+              id_area: id_area,
+              big_area: big_area
              )
       @knowledge_areas << knowledge_area
       return knowledge_area
@@ -151,7 +151,8 @@ class InformationImporter
     else
       speciality = KnowledgeSpeciality.where(name: speciality_name).
              first_or_initialize(
-              name: speciality_name
+              name: speciality_name,
+              knowledge_area: knowledge_area
              )
       @knowledge_specialities << speciality
       return speciality
