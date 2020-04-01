@@ -6,17 +6,17 @@ class InformationImporter
     @spreadsheet = open_spreadsheet
     @headers = @spreadsheet.row(1)
     @announcement=Announcement.find(1)
-    @big_areas=[]
     @countries=[]
+    @regions=[]
     @deptos=[]
-    @formation_levels=[]
-    @investigators=[]
+    @municipalities=[]
+    @big_areas=[]
     @knowledge_areas=[]
     @knowledge_specialities=[]
-    @municipalities=[]
-    @recognition_investigators=[]
+    @formation_levels=[]
     @recognition_levels=[]
-    @regions=[]
+    @recognition_investigators=[]
+    @investigators=[]
     load_imported_investigators_data
   end
 
@@ -32,41 +32,41 @@ class InformationImporter
 
   def load_imported_investigators_data
     (2..@spreadsheet.last_row).each do |row|
-      build_investigator(Hash[[@headers, @spreadsheet.row(row)].transpose])
+      import_investigator(Hash[[@headers, @spreadsheet.row(row)].transpose])
     end
-    Country.import @countries, on_duplicate_key_ignore: true
-    Region.import @regions, on_duplicate_key_ignore: true
-    Depto.import @deptos, on_duplicate_key_ignore: true
-    Municipality.import @municipalities, on_duplicate_key_ignore: true
-    BigArea.import @big_areas, on_duplicate_key_ignore: true
-    KnowledgeArea.import @knowledge_areas, on_duplicate_key_ignore: true
-    KnowledgeSpeciality.import @knowledge_specialities, on_duplicate_key_ignore: true
-    FormationLevel.import @formation_levels, on_duplicate_key_ignore: true
-    RecognitionLevel.import @recognition_levels, on_duplicate_key_ignore: true
-    Investigator.import @investigators, recursive: true, on_duplicate_key_ignore: true
+    Country.import @countries, on_duplicate_key_update: [:id]
+    Region.import @regions, on_duplicate_key_update: [:id]
+    Depto.import @deptos, on_duplicate_key_update: [:id]
+    Municipality.import @municipalities, on_duplicate_key_update: [:id]
+    BigArea.import @big_areas, on_duplicate_key_update: [:id]
+    KnowledgeArea.import @knowledge_areas, on_duplicate_key_update: [:id]
+    KnowledgeSpeciality.import @knowledge_specialities, on_duplicate_key_update: [:id]
+    FormationLevel.import @formation_levels, on_duplicate_key_update: [:id]
+    RecognitionLevel.import @recognition_levels, on_duplicate_key_update: [:id]
+    Investigator.import @investigators, recursive: true, on_duplicate_key_update: [:id]
   end
 
-  def build_investigator(row_info)
+  def import_investigator(row_info)
 
-    recognition_level = build_recognition_class(
+    recognition_level = import_recognition_class(
               row_info["ID_CLAS_PR"].to_s,
               row_info["NME_CLASIFICACION_PR"],
               row_info["ORDEN_CLAS_PR"],
             )
 
-    level_formation = build_formation_level(
+    level_formation = import_formation_level(
               row_info["ID_NIV_FORMACION_PR"].to_s,
               row_info["NME_NIV_FORMACION_PR"],
               row_info["NRO_ORDEN_FORM_PR"],
             )
-    knowledge_specialities = build_area(
+    knowledge_specialities = import_area(
               row_info["ID_AREA_CON_PR"],
               row_info["NME_ESP_AREA_PR"],
               row_info["NME_AREA_PR"],
               row_info["NME_GRAN_AREA_PR"]
             )
 
-    birthplace = build_location(
+    birthplace = import_location(
               row_info["NME_MUNICIPIO_NAC_PR"],
               row_info["NME_DEPARTAMENTO_NAC_PR"],
               row_info["NME_PAIS_NAC_PR"],
@@ -74,7 +74,7 @@ class InformationImporter
               row_info["COD_DANE_NAC_PR"],
               nil
             )
-    res_place = build_location(
+    res_place = import_location(
               row_info["NME_MUNICIPIO_RES_PR"],
               row_info["NME_DEPARTAMENTO_RES_PR"],
               row_info["NME_PAIS_RES_PR"],
@@ -98,14 +98,13 @@ class InformationImporter
     @investigators << investigator
   end
 
-  def build_area(id_area, speciality_name, area_name, big_area_name)
-    big_area = build_big_area(big_area_name)
-    knowledge_area = build_knowledge_area(big_area,area_name,id_area)
-    build_speciality_area(knowledge_area,speciality_name)
+  def import_area(id_area, speciality_name, area_name, big_area_name)
+    big_area = import_big_area(big_area_name)
+    knowledge_area = import_knowledge_area(big_area,area_name,id_area)
+    import_speciality_area(knowledge_area,speciality_name)
   end
 
-
-  def build_big_area(big_area_name)
+  def import_big_area(big_area_name)
     if @big_areas.select{ |m|
         m.name==big_area_name
       }.any?
@@ -122,7 +121,7 @@ class InformationImporter
     end
   end
 
-  def build_knowledge_area(big_area, knowledge_area_name, id_area)
+  def import_knowledge_area(big_area, knowledge_area_name, id_area)
     if @knowledge_areas.select{ |m|
         m.name==knowledge_area_name
       }.any?
@@ -141,7 +140,7 @@ class InformationImporter
     end
   end
 
-  def build_speciality_area(knowledge_area,speciality_name)
+  def import_speciality_area(knowledge_area,speciality_name)
     if @knowledge_specialities.select{ |m|
         m.name==speciality_name
       }.any?
@@ -159,14 +158,14 @@ class InformationImporter
     end
   end
 
-  def build_location(mun_name,depto_name,country_name,reg_name,cod_dane,ubic_res)
-    country = build_country(country_name)
-    region = build_region(country,reg_name)
-    depto = build_depto(region,depto_name)
-    build_mun(depto,mun_name,cod_dane,ubic_res)
+  def import_location(mun_name,depto_name,country_name,reg_name,cod_dane,ubic_res)
+    country = import_country(country_name)
+    region = import_region(country,reg_name)
+    depto = import_depto(region,depto_name)
+    import_mun(depto,mun_name,cod_dane,ubic_res)
   end
 
-  def build_country(country_name)
+  def import_country(country_name)
     if @countries.select{ |m|
         m.name==country_name
       }.any?
@@ -183,7 +182,7 @@ class InformationImporter
     end
   end
 
-  def build_region(country, reg_name)
+  def import_region(country, reg_name)
     if @regions.select{ |m|
         m.name==reg_name && !m.country.nil? && m.country.name==country.name
       }.any?
@@ -200,7 +199,7 @@ class InformationImporter
     end
   end
 
-  def build_depto(region, depto_name)
+  def import_depto(region, depto_name)
     if @deptos.select{ |m|
         m.name==depto_name && !m.region.nil? && m.region.name==region.name
       }.any?
@@ -217,7 +216,7 @@ class InformationImporter
     end
   end
 
-  def build_mun(depto, mun_name,mun_dane_code,mun_ubic_res)
+  def import_mun(depto, mun_name,mun_dane_code,mun_ubic_res)
     if @municipalities.select{ |m|
         m.name==mun_name && !m.depto.nil? && m.depto.name==depto.name
       }.any?
@@ -237,7 +236,7 @@ class InformationImporter
     end
   end
 
-  def build_formation_level(id_formation_level, name_formation_level, orden_formation_level)
+  def import_formation_level(id_formation_level, name_formation_level, orden_formation_level)
     if @formation_levels.select{ |m|
         m.id_level==id_formation_level
       }.any?
@@ -256,7 +255,7 @@ class InformationImporter
     end
   end
 
-  def build_recognition_class(id_clas_pr, name_clas_pr, orden_clas_pr)
+  def import_recognition_class(id_clas_pr, name_clas_pr, orden_clas_pr)
     if @recognition_levels.select{ |m|
         m.id_clas_pr==id_clas_pr
       }.any?
