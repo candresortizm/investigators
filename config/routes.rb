@@ -2,7 +2,7 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       scope :formation, controller: :formation do
-        get 'formation_levels',to: 'formation#index'
+        get 'formation_levels',to: 'formation#formation_levels_index'
       end
       scope :geographic, controller: :geographic do
         get 'countries',to: 'geographic#countries_index'
@@ -13,10 +13,10 @@ Rails.application.routes.draw do
       scope :knowledge, controller: :knowledge do
         get 'big_areas',to: 'knowledge#big_areas_index'
         get 'big_areas/:big_area_id',to: 'knowledge#knowledge_areas_index'
-        get 'knowledge_areas/:knowledge_area_id',to: 'knowledge#speciality_area_index'
+        get 'knowledge_areas/:knowledge_area_id',to: 'knowledge#speciality_areas_index'
       end
       scope :queries, controller: :queries do
-        get 'edit/:car_inspection_id',to: 'car_inspections#edit'
+        get 'new',to: 'queries#new'
       end
       scope :recognition, controller: :recognition do
         get 'recognition_levels',to: 'recognition#recognition_levels_index'
